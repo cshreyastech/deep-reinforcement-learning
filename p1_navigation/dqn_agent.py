@@ -2,7 +2,8 @@ import numpy as np
 import random
 from collections import namedtuple, deque
 
-from model import QNetwork
+#from model import QNetwork
+from DuelingDQNModel import DuelingDQN
 
 import torch
 import torch.nn.functional as F
@@ -34,19 +35,20 @@ class Agent():
         self.seed = random.seed(seed)
 
         # Q-Network
-        self.qnetwork_local = QNetwork(state_size, action_size, seed).to(device)
-        self.qnetwork_target = QNetwork(state_size, action_size, seed).to(device)
+        self.qnetwork_local = DuelingDQN(state_size, action_size, seed).to(device)
+        self.qnetwork_target = DuelingDQN(state_size, action_size, seed).to(device)
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=LR)
 
         # Replay memory
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed)
+
+        
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
     
     def step(self, state, action, reward, next_state, done):
         # Save experience in replay memory
         self.memory.add(state, action, reward, next_state, done)
-        
         # Learn every UPDATE_EVERY time steps.
         self.t_step = (self.t_step + 1) % UPDATE_EVERY
         if self.t_step == 0:
@@ -54,7 +56,7 @@ class Agent():
             if len(self.memory) > BATCH_SIZE:
                 experiences = self.memory.sample()
                 #self.learn(experiences, GAMMA)
-                self.learn_dqn(experiences, GAMMA)
+                self.learn_double_dqn(experiences, GAMMA)
 
     def act(self, state, eps=0.):
         """Returns actions for given state as per current policy.
@@ -84,7 +86,7 @@ class Agent():
             gamma (float): discount factor
         """
         states, actions, rewards, next_states, dones = experiences
-
+        
         # Get max predicted Q values (for next states) from target model
         Q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
         # Compute Q targets for current states 
@@ -103,7 +105,7 @@ class Agent():
         # ------------------- update target network ------------------- #
         self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)                     
 
-    def learn_dqn(self, experiences, gamma):
+    def learn_double_dqn(self, experiences, gamma):
         """Update value parameters using given batch of experience tuples.
         Params
         ======
@@ -111,10 +113,12 @@ class Agent():
             gamma (float): discount factor
         """
         states, actions, rewards, next_states, dones = experiences
-
         # Get max predicted Q values (for next states) from target model
-        Q_local_argmax = self.qnetwork_local(next_states).detach().max(1)[0].unsqueeze(1)
+        Q_local_argmax = self.qnetwork_local(next_states).detach().max(1)[1].unsqueeze(1)
+        
+        
         Q_targets_next = self.qnetwork_target(next_states).gather(1, Q_local_argmax)
+        
         
         # Compute Q targets for current states 
         Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
