@@ -17,3 +17,5 @@ torch
 pandas
 scipy
 ipykernel
+gym
+seaborn
