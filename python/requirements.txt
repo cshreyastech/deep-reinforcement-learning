@@ -19,3 +19,4 @@ scipy
 ipykernel
 gym
 seaborn
+dill

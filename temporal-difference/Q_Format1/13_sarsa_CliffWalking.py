@@ -13,7 +13,7 @@ def max_action(Q, state, actions):
 
 if __name__ == '__main__':
   env = gym.make('CliffWalking-v0')
-  n_games = 500
+  n_games = 5000
   alpha = 0.1
   gamma = 0.99
   eps = 0
