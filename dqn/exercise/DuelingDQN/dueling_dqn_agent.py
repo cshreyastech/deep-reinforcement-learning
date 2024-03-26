@@ -1,9 +1,12 @@
 import numpy as np
 import random
-# from collections import namedtuple, deque
+
 import sys
 sys.path.insert(1, '../')
 from model import QNetwork
+
+
+from dueling_model import DuelingQNetwork
 
 from replay_buffer import ReplayBuffer
 
@@ -21,7 +24,7 @@ UPDATE_EVERY = 4        # how often to update the network
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("device", device)
 
-class Agent():
+class DuelingAgent():
   """Interacts with and learns from the environment."""
 
   def __init__(self, state_size, action_size, seed):
@@ -40,6 +43,12 @@ class Agent():
     # Q-Network
     self.qnetwork_local = QNetwork(state_size, action_size, seed).to(device)
     self.qnetwork_target = QNetwork(state_size, action_size, seed).to(device)
+    
+    #########
+    self.du_qnetwork_local = DuelingQNetwork(state_size, action_size, seed).to(device)
+    self.du_qnetwork_target = DuelingQNetwork(state_size, action_size, seed).to(device)
+    self.du_optimizer = optim.Adam(self.du_qnetwork_local.parameters(), lr=LR)
+    #########
     self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=LR)
 
     # Replay memory
@@ -90,14 +99,12 @@ class Agent():
     states, actions, rewards, next_states, dones = experiences
     ## TODO: compute and minimize the loss
     "*** YOUR CODE HERE ***"
-    # https://ai.stackexchange.com/questions/21515/is-there-any-good-reference-for-double-deep-q-learning
-    # https://stackoverflow.com/questions/50999977/what-does-the-gather-function-do-in-pytorch-in-layman-terms
-
     q_local_current = self.qnetwork_local(states) #(BATCH_SIZE x action_size)
     # q_expected = torch.gather(expected_local_rewards, 1, actions)
     q_expected = q_local_current.gather(1, actions) #(BATCH_SIZE x 1)
-    #############
 
+
+    #############
     q_target_next = self.qnetwork_target(next_states) #(BATCH_SIZE x action_space)
 
     # select the maximum reward for each of the next actions
@@ -107,12 +114,33 @@ class Agent():
 
     loss = F.mse_loss(q_expected, q_target) # single tensor
     # Minimize the loss
-    self.optimizer.zero_grad()
-    loss.backward()
-    self.optimizer.step()
+    # self.optimizer.zero_grad()
+    # loss.backward()
+    # self.optimizer.step()
 
+
+    #-----------------------#
+    du_q_local_current = self.du_qnetwork_local(states)
+    du_q_expected = du_q_local_current.gather(1, actions) #(BATCH_SIZE x 1)
+
+    
+    du_q_target_next = self.du_qnetwork_target(next_states) #(BATCH_SIZE x action_space)
+
+    # select the maximum reward for each of the next actions
+    du_q_target_next_max = q_target_next.max(dim=1, keepdim=True)[0] #(BATCH_SIZE x 1)
+    du_q_target = rewards + gamma * q_target_next_max * (1 - dones) #(BATCH_SIZE x 1)
+
+    du_loss = F.mse_loss(du_q_expected, du_q_target) # single tensor
+    # Minimize the loss
+    self.du_optimizer.zero_grad()
+    du_loss.backward()
+    self.du_optimizer.step()
+
+    #-----------------------#
+
+    # print("-----------------")
     # ------------------- update target network ------------------- #
-    self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
+    self.soft_update(self.du_qnetwork_local, self.du_qnetwork_target, TAU)
 
   def soft_update(self, local_model, target_model, tau):
     """Soft update model parameters.
