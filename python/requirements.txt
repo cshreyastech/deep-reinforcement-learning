@@ -2,7 +2,7 @@ tensorflow
 # ==1.7.1
 Pillow>=4.2.1
 matplotlib
-numpy>=1.11.0
+numpy==1.23.0
 jupyter
 pytest>=4.22
 # >=3.2.2
@@ -18,5 +18,10 @@ pandas
 scipy
 ipykernel
 gym
+#==0.25.2
+# ==0.20.0
+torchvision
 seaborn
 dill
+pyglet
+gymnasium[box2d]
