@@ -92,8 +92,7 @@ This approach is basically building a database of samples and then learning a ma
 - Fixed Q Targets
 Experience replay helps us address one type of correlation. That is between consecutive experience tuples. There is another kind of correlation that Q-learning is susceptible to. Q-learning is a form of Temporal Difference or TD learning.
 
-
-2.2.5 Deep Q- Learning Algorithm
+2.2.5 Deep Q-Learning Algorithm
 There are two main modules. One is where we sample the environment by sampling the environment and store the observed experienced tuples in a replay memory. The other is where we select the small batch of tuples from this memory, randomly, and learn from that batch using a gradient descent update step.
 These two processes are not directly dependent on each other. So, you could perform multiple sampling steps then on learning step, or even multiple learning steps with different random batches. The rest of the algorithm is designed to support these steps. In the beginning you need to initialize an empty replay memory D. Note that memory is finite, so you may want to use something like a circular Q that retains the N most recent experience tuples. Then, you also need to initialize the parameters or weights of your neural network. 
 
@@ -185,7 +184,6 @@ Third, we update our policy using gradient ascent with learning rate
 The process then repeats.
 
 What are the main problems of REINFORCE? There are three issues:
-
 1) The update process is very inefficient! We run the policy once, update once, and then throw away the trajectory.
 2) The gradient estimate g is very noisy. By chance the collected trajectory may not be representative of the policy.
 3) There is no clear credit assignment. A trajectory may contain many good/bad actions and whether these actions are reinforced depends only on the final total output.
@@ -248,8 +246,6 @@ Let's now assume you use deep learning to learn these basics. Even if you still 
 We will be introducing bias but we will be reducing variance thus improving our convergence properties and speeding up learning. In actor-critic methods, all we are trying to do is to continue to reduce the high-variance commonly associated with policy based agents. By using a TD critic instead of a MC baseline, we further reduce the variance of policy-based methods. 
 
 These lead to faster learning than policy-based agents alone and we also see better and more consistent convergence than value-based agents alone. 
-
-
 
 3.5.7 A Basic Actor-Critic Agent
 An actor-critic agent is an agent that uses function approximation to learn a policy and a value function. We will use two neural networks; One for the actor and one for the critic. The critic will learn to evaluate the state action function V(Pi) using TD estimate. Using the criterion, we will calculate the advantage function and train the actor using this value. A very basic online actor-critic agent is as follows.
