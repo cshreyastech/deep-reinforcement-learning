@@ -668,7 +668,6 @@ IRL is like figuring out why a dog runs to the door when the bell rings (inferri
 IL is like copying someone’s dance moves directly (no reward, just mimic).
 
 ##################################
-
 “Let me explain the difference between Reinforcement Learning, Inverse Reinforcement Learning, and Imitation Learning using a 
 humanoid example — teaching the robot to pick up a cup and hand it to a person.
 
@@ -686,5 +685,4 @@ hands over the cup, and the robot directly learns to map its observations to tho
 So in short: RL is about learning from trial and error with explicit rewards, IRL is about learning the hidden rewards from 
 human demonstrations, and IL is about directly copying human actions. Each is useful depending on whether I can define rewards 
 easily, need to capture human intent, or just want quick learning from demos.”
-
 ######################################
